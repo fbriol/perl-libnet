@@ -68,6 +68,14 @@ sub _readrc {
   }
 
   if ($fh = FileHandle->new($file, "r")) {
+    _readrc_fh($fh);
+    $fh->close();
+  }
+  return 1;
+}
+
+sub _readrc_fh {
+    my $fh = shift;
     my ($mach, $macdef, $tok, @tok) = (0, 0);
 
     while (<$fh>) {
@@ -126,8 +134,7 @@ sub _readrc {
         }
       }
     }
-    $fh->close();
-  }
+    return 1;
 }
 
 

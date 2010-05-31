@@ -34,9 +34,6 @@ my @stat;
 	return @stat;
 };
 
-# for testing _readrc
-$INC{'FileHandle.pm'} = 1;
-
 (my $libnet_t = __FILE__) =~ s/\w+.t$/libnet_t.pl/;
 require $libnet_t;
 
@@ -78,7 +75,7 @@ SKIP: {
 $stat[4] = $<;
 
 # this curious mix of spaces and quotes tests a regex at line 79 (version 2.11)
-FileHandle::set_lines(split(/\n/, <<LINES));
+MyFileHandle::set_lines(split(/\n/, <<LINES));
 macdef bar
 login	baz
  machine "foo"
@@ -91,8 +88,9 @@ default "login" baz password p3
 macdef
 LINES
 
+tie *FH, 'MyFileHandle';
 # having set several lines and the uid, this should succeed
-is( Net::Netrc::_readrc(), 1, '_readrc() should succeed now' );
+is( Net::Netrc::_readrc_fh(*FH), 1, '_readrc() should succeed now' );
 
 # on 'foo', the login is 'nigol'
 is( Net::Netrc->lookup('foo')->{login}, 'nigol', 
@@ -130,12 +128,8 @@ is( scalar( () = $instance->lpa()), 3,
 is( join(' ', $instance->lpa), 'login password account', 
 	'lpa() should return appropriate values for l, p, and a' );
 
-package FileHandle;
+package MyFileHandle;
 
-sub new {
-	tie *FH, 'FileHandle', @_;
-	bless \*FH, $_[0];
-}
 
 sub TIEHANDLE {
 	my ($class, $file, $mode) = @_[0,2,3];
